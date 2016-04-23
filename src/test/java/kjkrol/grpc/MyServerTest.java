@@ -11,9 +11,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Iterator;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static org.junit.Assert.assertEquals;
 
@@ -29,10 +30,14 @@ public class MyServerTest {
 
     private static final int PORT = 19880;
 
+    private static final NegotiationType DEFAULT_NEGOTIATIONTYPE = NegotiationType.PLAINTEXT;
+
     private MyServer server;
 
     @Before
     public void setUp() throws Exception {
+
+        final ClassLoader classLoader = getClass().getClassLoader();
         server = new MyServer(PORT);
         server.start();
     }
@@ -46,7 +51,7 @@ public class MyServerTest {
     public void testEcho() {
         final ManagedChannel channel = NettyChannelBuilder
                 .forAddress(HOST, PORT)
-                .negotiationType(NegotiationType.PLAINTEXT)
+                .negotiationType(DEFAULT_NEGOTIATIONTYPE)
                 .build();
         final EchoServiceGrpc.EchoServiceFutureClient client = EchoServiceGrpc.newFutureStub(channel);
         final EchoRequest echoRequest = EchoRequest.newBuilder().setMsg(ECHO_MSG).build();
@@ -63,7 +68,7 @@ public class MyServerTest {
     public void testHelloWorld() {
         final ManagedChannel channel = NettyChannelBuilder
                 .forAddress(HOST, PORT)
-                .negotiationType(NegotiationType.PLAINTEXT)
+                .negotiationType(DEFAULT_NEGOTIATIONTYPE)
                 .build();
         final HelloWorldServiceGrpc.HelloWorldServiceFutureClient client = HelloWorldServiceGrpc.newFutureStub(channel);
         final Empty empty = Empty.getDefaultInstance();
@@ -78,19 +83,22 @@ public class MyServerTest {
 
     @Test
     public void testNumSeq() {
+        final int limit = 10000;
         final ManagedChannel channel = NettyChannelBuilder
                 .forAddress(HOST, PORT)
-                .negotiationType(NegotiationType.PLAINTEXT)
+                .negotiationType(DEFAULT_NEGOTIATIONTYPE)
                 .build();
-        final NumSeqServiceGrpc.NumSeqServiceFutureClient client = NumSeqServiceGrpc.newFutureStub(channel);
         final NumSeqRequest numSeqRequest = NumSeqRequest.newBuilder()
-                .setTotal(10000)
+                .setTotal(limit)
                 .build();
-        final ListenableFuture<NumSeqResponse> listenableFuture = client.numSeq(numSeqRequest);
-        final AtomicInteger counter = new AtomicInteger();
-        listenableFuture.addListener(() -> {
+        final NumSeqServiceGrpc.NumSeqServiceBlockingClient client = NumSeqServiceGrpc.newBlockingStub(channel);
+        final Iterator<NumSeqResponse> iterator = client.numSeq(numSeqRequest);
+        final long streamLength = iteratorToFiniteStream(iterator).count();
+        assertEquals(limit, streamLength);
+    }
 
-                },
-                Executors.newSingleThreadExecutor());
+    private static <T> Stream<T> iteratorToFiniteStream(final Iterator<T> iterator) {
+        final Iterable<T> iterable = () -> iterator;
+        return StreamSupport.stream(iterable.spliterator(), false);
     }
 }

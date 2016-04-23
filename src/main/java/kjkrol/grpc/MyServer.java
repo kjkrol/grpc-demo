@@ -7,7 +7,9 @@ import io.grpc.stub.StreamObserver;
 import kjkrol.grpc.client.*;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.stream.IntStream;
 
 /**
  * A sample gRPC server that serve the RouteGuide (see route_guide.proto) service.
@@ -15,22 +17,33 @@ import java.io.IOException;
 @Slf4j
 public class MyServer {
 
+    private static final int DEFAULT_PORT = 8980;
+
     private final int port;
 
     private final Server server;
 
     public static void main(String[] args) throws Exception {
-        final MyServer server = new MyServer(8980);
+        final MyServer server = new MyServer(DEFAULT_PORT);
         server.start();
         server.blockUntilShutdown();
     }
-
     /**
-     * Create a RouteGuide server listening on {@code port} using {@code featureFile} database.
+     * Create a server listening on {@code port} using {@code featureFile} database.
      */
     public MyServer(int port) throws IOException {
         this.port = port;
         this.server = NettyServerBuilder.forPort(port)
+                .addService(EchoServiceGrpc.bindService(new EchoServiceImpl()))
+                .addService(HelloWorldServiceGrpc.bindService(new HelloWorldServiceImpl()))
+                .addService(NumSeqServiceGrpc.bindService(new NumSeqServiceImpl()))
+                .build();
+    }
+
+    public MyServer(int port, File certChain, File privateKey) throws IOException {
+        this.port = port;
+        this.server = NettyServerBuilder.forPort(port)
+                .useTransportSecurity(certChain, privateKey)
                 .addService(EchoServiceGrpc.bindService(new EchoServiceImpl()))
                 .addService(HelloWorldServiceGrpc.bindService(new HelloWorldServiceImpl()))
                 .addService(NumSeqServiceGrpc.bindService(new NumSeqServiceImpl()))
@@ -99,6 +112,13 @@ public class MyServer {
         @Override
         public void numSeq(NumSeqRequest request, StreamObserver<NumSeqResponse> responseObserver) {
 
+            IntStream.iterate(0, i -> ++i)
+                    .boxed()
+                    .limit(request.getTotal())
+                    .forEach(value -> responseObserver.onNext(NumSeqResponse.getDefaultInstance().newBuilderForType()
+                            .addNumber(value)
+                            .build()));
+            responseObserver.onCompleted();
         }
     }
 

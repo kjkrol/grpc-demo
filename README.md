@@ -1,6 +1,6 @@
 # grpc-demo
 
-This project is a **PoC** which shows example Java implementation of **gRPC** server. <br />
+This project is an example implementation of Java **gRPC** server. <br />
 Unit tests contain a set of test cases dedicated for each end-point provided by a server. Each test case implements a specific gRPC client. <br />
 
 Server exposes three different services:

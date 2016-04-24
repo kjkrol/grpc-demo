@@ -3,7 +3,7 @@ package kjkrol.grpc.echo;
 import io.grpc.stub.StreamObserver;
 
 /**
- * Created by krolk on 24/04/16.
+ * @author Karol Krol
  */
 public class EchoServiceImpl implements EchoServiceGrpc.EchoService {
 

@@ -1,15 +1,16 @@
 package kjkrol.grpc;
 
-import com.google.protobuf.Empty;
 import io.grpc.Server;
 import io.grpc.netty.NettyServerBuilder;
-import io.grpc.stub.StreamObserver;
-import kjkrol.grpc.client.*;
+import kjkrol.grpc.echo.EchoServiceGrpc;
+import kjkrol.grpc.echo.EchoServiceImpl;
+import kjkrol.grpc.helloworld.HelloWorldServiceGrpc;
+import kjkrol.grpc.helloworld.HelloWorldServiceImpl;
+import kjkrol.grpc.numseq.NumSeqServiceGrpc;
+import kjkrol.grpc.numseq.NumSeqServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.stream.IntStream;
 
 /**
  * A sample gRPC server that serve the RouteGuide (see route_guide.proto) service.
@@ -31,19 +32,9 @@ public class MyServer {
     /**
      * Create a server listening on {@code port} using {@code featureFile} database.
      */
-    public MyServer(int port) throws IOException {
+    MyServer(int port) throws IOException {
         this.port = port;
         this.server = NettyServerBuilder.forPort(port)
-                .addService(EchoServiceGrpc.bindService(new EchoServiceImpl()))
-                .addService(HelloWorldServiceGrpc.bindService(new HelloWorldServiceImpl()))
-                .addService(NumSeqServiceGrpc.bindService(new NumSeqServiceImpl()))
-                .build();
-    }
-
-    public MyServer(int port, File certChain, File privateKey) throws IOException {
-        this.port = port;
-        this.server = NettyServerBuilder.forPort(port)
-                .useTransportSecurity(certChain, privateKey)
                 .addService(EchoServiceGrpc.bindService(new EchoServiceImpl()))
                 .addService(HelloWorldServiceGrpc.bindService(new HelloWorldServiceImpl()))
                 .addService(NumSeqServiceGrpc.bindService(new NumSeqServiceImpl()))
@@ -53,7 +44,7 @@ public class MyServer {
     /**
      * Start serving requests.
      */
-    public void start() throws IOException, InterruptedException {
+    void start() throws IOException, InterruptedException {
         server.start();
         log.debug("Server started, listening on {}", port);
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -70,7 +61,7 @@ public class MyServer {
     /**
      * Stop serving requests and shutdown resources.
      */
-    public void stop() {
+    void stop() {
         if (server != null) {
             server.shutdown();
         }
@@ -82,43 +73,6 @@ public class MyServer {
     private void blockUntilShutdown() throws InterruptedException {
         if (server != null) {
             server.awaitTermination();
-        }
-    }
-
-    private static class EchoServiceImpl implements EchoServiceGrpc.EchoService {
-
-        @Override
-        public void echo(EchoRequest request, StreamObserver<EchoResponse> responseObserver) {
-            responseObserver.onNext(EchoResponse.newBuilder()
-                    .setMsg(request.getMsg())
-                    .build());
-            responseObserver.onCompleted();
-        }
-    }
-
-    private static class HelloWorldServiceImpl implements HelloWorldServiceGrpc.HelloWorldService {
-
-        @Override
-        public void helloWorld(Empty request, StreamObserver<HelloWorldResponse> responseObserver) {
-            responseObserver.onNext(HelloWorldResponse.newBuilder()
-                    .setMsg("Hello, World!")
-                    .build());
-            responseObserver.onCompleted();
-        }
-    }
-
-    private static class NumSeqServiceImpl implements NumSeqServiceGrpc.NumSeqService {
-
-        @Override
-        public void numSeq(NumSeqRequest request, StreamObserver<NumSeqResponse> responseObserver) {
-
-            IntStream.iterate(0, i -> ++i)
-                    .boxed()
-                    .limit(request.getTotal())
-                    .forEach(value -> responseObserver.onNext(NumSeqResponse.getDefaultInstance().newBuilderForType()
-                            .addNumber(value)
-                            .build()));
-            responseObserver.onCompleted();
         }
     }
 

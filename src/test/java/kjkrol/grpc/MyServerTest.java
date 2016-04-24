@@ -5,7 +5,14 @@ import com.google.protobuf.Empty;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NegotiationType;
 import io.grpc.netty.NettyChannelBuilder;
-import kjkrol.grpc.client.*;
+import kjkrol.grpc.echo.EchoRequest;
+import kjkrol.grpc.echo.EchoResponse;
+import kjkrol.grpc.echo.EchoServiceGrpc;
+import kjkrol.grpc.helloworld.HelloWorldResponse;
+import kjkrol.grpc.helloworld.HelloWorldServiceGrpc;
+import kjkrol.grpc.numseq.NumSeqRequest;
+import kjkrol.grpc.numseq.NumSeqResponse;
+import kjkrol.grpc.numseq.NumSeqServiceGrpc;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
@@ -36,8 +43,6 @@ public class MyServerTest {
 
     @Before
     public void setUp() throws Exception {
-
-        final ClassLoader classLoader = getClass().getClassLoader();
         server = new MyServer(PORT);
         server.start();
     }

@@ -5,7 +5,7 @@ import io.grpc.stub.StreamObserver;
 import java.util.stream.IntStream;
 
 /**
- * Created by krolk on 24/04/16.
+ * @author Karol Krol
  */
 public class NumSeqServiceImpl implements NumSeqServiceGrpc.NumSeqService {
 

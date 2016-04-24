@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package kjkrol.client;
+package kjkrol.echo;
 
 option java_multiple_files = true;
-option java_package = "kjkrol.grpc.client";
+option java_package = "kjkrol.grpc.echo";
 option java_outer_classname = "EchoProto";
 option objc_class_prefix = "ECHO";
 
@@ -21,25 +21,3 @@ message EchoResponse {
 service EchoService {
     rpc Echo (EchoRequest) returns (EchoResponse);
 }
-
-message HelloWorldResponse {
-    string msg = 1;
-}
-
-service HelloWorldService {
-    rpc HelloWorld (google.protobuf.Empty) returns (HelloWorldResponse);
-}
-
-message NumSeqRequest {
-    int32 total = 1;
-}
-
-message NumSeqResponse {
-    int32 total = 1;
-    repeated int32 number = 2;
-}
-
-service NumSeqService {
-    rpc NumSeq (NumSeqRequest) returns (stream NumSeqResponse){};
-}
-

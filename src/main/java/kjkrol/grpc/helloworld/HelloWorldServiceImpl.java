@@ -4,7 +4,7 @@ import com.google.protobuf.Empty;
 import io.grpc.stub.StreamObserver;
 
 /**
- * Created by krolk on 24/04/16.
+ * @author Karol Krol
  */
 public class HelloWorldServiceImpl implements HelloWorldServiceGrpc.HelloWorldService {
 
